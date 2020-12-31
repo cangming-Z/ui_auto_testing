@@ -1,3 +1,5 @@
+import json
+
 from flask import render_template, redirect, url_for, Blueprint, request, jsonify
 from flask_login import current_user, login_user, login_required, logout_user
 
@@ -6,19 +8,20 @@ auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('todo.app'))
-
     if request.method == 'POST':
-        data = request.get_json()
-        username = data['username']
-        password = data['password']
+        try:
+            data = request.get_data()
+            json_data = json.loads(data)
+            username = json_data['username']
+            password = json_data['password']
 
-        if username == 'abc' and password == '123':
-            login_user(username)
-            return jsonify(message=_('Login success.'))
-        return jsonify(message=_('Invalid username or password.')), 400
-    return render_template('_login.html')
+            if username == '' and password == '':
+                # login_user(username)
+                return 'main'
+            return jsonify(message='Invalid username or password.'), 400
+        except Exception as e:
+            print(e)
+            return jsonify(message='error')
 
 
 @auth_bp.route('/logout')
